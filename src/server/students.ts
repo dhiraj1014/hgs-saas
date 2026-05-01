@@ -85,3 +85,30 @@ export async function createStudent(input: unknown, parents: unknown[] = []) {
   });
   revalidatePath("/students");
 }
+
+export async function getStudent(id: string) {
+  const session = await requireAbility("students.view");
+  const allowed = await permittedStudentIds(db, { userId: session.user.id, role: (session.user as { role: Role }).role });
+  if (!allowed.has(id)) throw new Error("Not found");
+
+  const rows = await db
+    .select({
+      student: student, sectionName: section.name, className: class_.name,
+    })
+    .from(student)
+    .leftJoin(section, eq(section.id, student.currentSectionId))
+    .leftJoin(class_, eq(class_.id, section.classId))
+    .where(eq(student.id, id))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) throw new Error("Not found");
+
+  const parents = await db
+    .select({ id: parent.id, fullName: parent.fullName, phone: parent.phone, email: parent.email, relation: parent.relationToStudent, isPrimary: parentStudent.isPrimaryContact })
+    .from(parentStudent)
+    .innerJoin(parent, eq(parent.id, parentStudent.parentId))
+    .where(eq(parentStudent.studentId, id));
+
+  return { ...row, parents };
+}
