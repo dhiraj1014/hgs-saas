@@ -8,7 +8,10 @@ import { can, type Ability, type Role } from "@/lib/permissions";
 type NavItem = { href: string; label: string; ability?: Ability };
 
 const ALL_LINKS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard" }, // any signed-in staff
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/attendance", label: "Attendance", ability: "attendance.mark" },
+  { href: "/announcements", label: "Announcements", ability: "announcements.send" },
+  { href: "/notifications", label: "Notifications log", ability: "notifications.view-all" },
   { href: "/academic-years", label: "Academic years", ability: "academic-years.manage" },
   { href: "/classes", label: "Classes & sections", ability: "classes.manage" },
   { href: "/subjects", label: "Subjects", ability: "subjects.manage" },
