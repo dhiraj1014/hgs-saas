@@ -37,3 +37,34 @@ describe("permissions.can", () => {
     expect(can(role, "totally.fake.ability" as never)).toBe(false);
   });
 });
+
+describe("Phase 1 abilities", () => {
+  it("class_teacher has attendance.mark", () => {
+    expect(can("class_teacher", "attendance.mark")).toBe(true);
+  });
+  it("subject_teacher does not have attendance.mark", () => {
+    expect(can("subject_teacher", "attendance.mark")).toBe(false);
+  });
+  it("super_admin has attendance.mark, attendance.view-all, announcements.send-school-wide", () => {
+    expect(can("super_admin", "attendance.mark")).toBe(true);
+    expect(can("super_admin", "attendance.view-all")).toBe(true);
+    expect(can("super_admin", "announcements.send-school-wide")).toBe(true);
+  });
+  it("principal has announcements.send but not announcements.send-school-wide", () => {
+    expect(can("principal", "announcements.send")).toBe(true);
+    expect(can("principal", "announcements.send-school-wide")).toBe(false);
+  });
+  it("office_staff has attendance.view-all but not announcements.send", () => {
+    expect(can("office_staff", "attendance.view-all")).toBe(true);
+    expect(can("office_staff", "announcements.send")).toBe(false);
+  });
+  it("parent has attendance.view-own-children, announcements.view, notifications.view-own", () => {
+    expect(can("parent", "attendance.view-own-children")).toBe(true);
+    expect(can("parent", "announcements.view")).toBe(true);
+    expect(can("parent", "notifications.view-own")).toBe(true);
+  });
+  it("parent does NOT have attendance.mark or notifications.view-all", () => {
+    expect(can("parent", "attendance.mark")).toBe(false);
+    expect(can("parent", "notifications.view-all")).toBe(false);
+  });
+});
