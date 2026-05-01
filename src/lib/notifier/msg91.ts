@@ -9,7 +9,8 @@ export interface Msg91Config {
   templates: Record<TemplateKey, string>;
 }
 
-const ENDPOINT = "https://control.msg91.com/api/v5/flow/";
+const FLOW_ENDPOINT = "https://control.msg91.com/api/v5/flow/";
+const OTP_ENDPOINT = "https://control.msg91.com/api/v5/otp";
 const TIMEOUT_MS = 10_000;
 
 export function createMsg91Notifier(db: DB, config: Msg91Config): Notifier {
@@ -30,14 +31,24 @@ export function createMsg91Notifier(db: DB, config: Msg91Config): Notifier {
       return { status: "failed", errorMessage };
     }
 
-    const body = {
-      template_id: templateId,
-      sender: config.senderId,
-      short_url: 0,
-      recipients: [{ mobiles: args.phone.replace(/^\+/, ""), ...args.variables }],
-    };
+    // OTP uses MSG91's dedicated endpoint (more lenient on DLT for sandbox testing).
+    // Other templates use the Flow API (full DLT required).
+    const isOtp = args.templateKey === "parent_otp";
+    const endpoint = isOtp ? OTP_ENDPOINT : FLOW_ENDPOINT;
+    const body = isOtp
+      ? {
+          template_id: templateId,
+          mobile: args.phone.replace(/^\+/, ""),
+          otp: args.variables.otp,
+        }
+      : {
+          template_id: templateId,
+          sender: config.senderId,
+          short_url: 0,
+          recipients: [{ mobiles: args.phone.replace(/^\+/, ""), ...args.variables }],
+        };
 
-    const result = await sendWithRetry(config.authKey, body);
+    const result = await sendWithRetry(config.authKey, endpoint, body);
 
     await db.insert(notificationLog).values({
       channel: "sms", templateKey: args.templateKey, recipientPhone: args.phone,
@@ -68,11 +79,11 @@ export function createMsg91Notifier(db: DB, config: Msg91Config): Notifier {
   };
 }
 
-async function sendWithRetry(authKey: string, body: unknown): Promise<NotificationResult> {
-  const first = await sendOnce(authKey, body);
+async function sendWithRetry(authKey: string, endpoint: string, body: unknown): Promise<NotificationResult> {
+  const first = await sendOnce(authKey, endpoint, body);
   const isRetryable = first.errorClass === "5xx" || first.errorClass === "timeout";
   if (first.status === "sent" || !isRetryable) return toResult(first);
-  const second = await sendOnce(authKey, body);
+  const second = await sendOnce(authKey, endpoint, body);
   return toResult(second);
 }
 
@@ -83,11 +94,11 @@ type RawResult = {
   errorClass?: "4xx" | "5xx" | "timeout" | "network";
 };
 
-async function sendOnce(authKey: string, body: unknown): Promise<RawResult> {
+async function sendOnce(authKey: string, endpoint: string, body: unknown): Promise<RawResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(ENDPOINT, {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "content-type": "application/json", "authkey": authKey },
       body: JSON.stringify(body),

@@ -25,20 +25,45 @@ describe("msg91 notifier", () => {
     vi.restoreAllMocks();
   });
 
-  it("sendParentOtp: success writes status=sent and provider_message_id", async () => {
+  it("sendParentOtp: hits OTP endpoint (not Flow) and writes status=sent", async () => {
     const { db } = await freshTestDb();
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+    const fetchMock = vi.fn(async () => new Response(
       JSON.stringify({ type: "success", request_id: "abc-123" }),
       { status: 200, headers: { "content-type": "application/json" } },
-    )));
+    ));
+    vi.stubGlobal("fetch", fetchMock);
     const n = createMsg91Notifier(db, config);
     const result = await n.sendParentOtp("+919000000001", "123456");
     expect(result.status).toBe("sent");
     expect(result.providerMessageId).toBe("abc-123");
+    // Endpoint regression guard — OTP must hit /api/v5/otp, not /api/v5/flow.
+    // (The flow endpoint requires DLT which fails with error 418 before DLT registration.)
+    const calledUrl = fetchMock.mock.calls[0]?.[0];
+    expect(calledUrl).toBe("https://control.msg91.com/api/v5/otp");
+    const calledBody = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit | undefined)?.body as string);
+    expect(calledBody.template_id).toBe("test-otp-template-id");
+    expect(calledBody.mobile).toBe("919000000001");
+    expect(calledBody.otp).toBe("123456");
     const rows = await db.select().from(notificationLog);
     expect(rows[0]?.status).toBe("sent");
     expect(rows[0]?.provider).toBe("msg91");
     expect(rows[0]?.providerMessageId).toBe("abc-123");
+  });
+
+  it("sendAttendanceAlert: hits Flow endpoint (not OTP)", async () => {
+    const { db } = await freshTestDb();
+    const fetchMock = vi.fn(async () => new Response(
+      JSON.stringify({ type: "success", request_id: "att-1" }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+    const n = createMsg91Notifier(db, config);
+    await n.sendAttendanceAlert(
+      "+919000000001",
+      { studentName: "S", date: "01-May-2026", status: "absent", sectionName: "G1 · A" },
+    );
+    const calledUrl = fetchMock.mock.calls[0]?.[0];
+    expect(calledUrl).toBe("https://control.msg91.com/api/v5/flow/");
   });
 
   it("sendParentOtp: 4xx writes status=failed with errorMessage", async () => {
