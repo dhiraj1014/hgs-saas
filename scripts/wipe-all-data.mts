@@ -7,6 +7,8 @@
  *
  * Refuses to run without --yes-wipe to prevent accidents.
  */
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
 import postgres from "postgres";
 
 if (!process.argv.includes("--yes-wipe")) {

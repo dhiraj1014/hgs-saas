@@ -1,3 +1,7 @@
+// Force IPv4 DNS resolution; see scripts/create-admin.mts for why.
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { db } from "../src/lib/db";
 import { academicYear, class_, section, subject } from "../src/lib/db/schema/academic";
 import { student, parent, parentStudent } from "../src/lib/db/schema/people";

@@ -1,3 +1,9 @@
+// Force IPv4 DNS resolution: Neon's IPv6 path is unreachable from some Windows
+// networks (Node.js defaults to IPv6 first). Setting this in-script is more
+// reliable than NODE_OPTIONS=--dns-result-order=ipv4first which is easy to drop.
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { auth } from "../src/lib/auth";
 
 const email = process.argv[2];

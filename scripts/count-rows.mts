@@ -2,6 +2,8 @@
  * Read-only sanity check: counts rows in every domain + auth table at DATABASE_URL.
  * Useful to verify a wipe took effect, or to spot-check a fresh DB.
  */
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
 import postgres from "postgres";
 
 const url = process.env.DATABASE_URL;
