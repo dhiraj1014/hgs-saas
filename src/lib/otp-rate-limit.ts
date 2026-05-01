@@ -8,8 +8,8 @@ const MAX_PER_DAY = 10;
 export type OtpCheckResult = "ok" | "rate_limited";
 
 export async function checkAndRecordOtp(db: DB, phone: string): Promise<OtpCheckResult> {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   const counts = await db
     .select({
