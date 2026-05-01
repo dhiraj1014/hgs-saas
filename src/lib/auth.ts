@@ -26,7 +26,8 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      phone: { type: "string", required: false },
+      phoneNumber: { type: "string", required: false },
+      phoneNumberVerified: { type: "boolean", required: false, defaultValue: false },
       role: { type: "string", required: true },
       isActive: { type: "boolean", required: false, defaultValue: true },
     },

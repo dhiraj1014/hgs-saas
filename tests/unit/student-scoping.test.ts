@@ -41,7 +41,7 @@ describe("permittedStudentIds", () => {
     const [p] = await db.insert(parent).values({ fullName: "Parent of Aarav", phone: "+919999900001" }).returning();
     await db.insert(parentStudent).values({ parentId: p.id, studentId: s1.id, isPrimaryContact: true });
 
-    await db.update(user).set({ phone: "+919999900001" }).where(eq(user.id, "u-parent"));
+    await db.update(user).set({ phoneNumber: "+919999900001" }).where(eq(user.id, "u-parent"));
   });
 
   it("super_admin sees every student", async () => {
