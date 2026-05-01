@@ -1,4 +1,5 @@
 import { boolean, date, integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 
 export const academicYear = pgTable("academic_year", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -23,7 +24,7 @@ export const section = pgTable("section", {
   classId: uuid("class_id").notNull().references(() => class_.id),
   academicYearId: uuid("academic_year_id").notNull().references(() => academicYear.id),
   name: text("name").notNull(),                // "A", "B"
-  classTeacherId: uuid("class_teacher_id"),    // FK added in people.ts after user table
+  classTeacherId: text("class_teacher_id").references(() => user.id),
   capacity: integer("capacity"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
