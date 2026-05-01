@@ -1,3 +1,7 @@
+import { eq } from "drizzle-orm";
+import { type DB } from "@/lib/db";
+import { student, parent, parentStudent } from "@/lib/db/schema/people";
+
 export type RawRow = {
   admission_no?: string | number;
   first_name?: string;
@@ -97,4 +101,32 @@ export function validateStudentRows(
   });
 
   return { valid, errors };
+}
+
+export async function commitStudentRows(db: DB, rows: ValidatedRow[]) {
+  let inserted = 0;
+  await db.transaction(async (tx) => {
+    for (const row of rows) {
+      const [s] = await tx.insert(student).values(row.student).returning();
+      if (!s) throw new Error("Insert failed");
+      if (row.parent) {
+        let parentRow = (await tx.select().from(parent).where(eq(parent.phone, row.parent.phone)).limit(1))[0];
+        if (!parentRow) {
+          [parentRow] = await tx.insert(parent).values({
+            fullName: row.parent.fullName,
+            phone: row.parent.phone,
+            email: row.parent.email ?? null,
+            relationToStudent: row.parent.relationToStudent ?? null,
+          }).returning();
+        }
+        await tx.insert(parentStudent).values({
+          parentId: parentRow!.id,
+          studentId: s.id,
+          isPrimaryContact: row.parent.isPrimaryContact,
+        });
+      }
+      inserted++;
+    }
+  });
+  return { inserted };
 }

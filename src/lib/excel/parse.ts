@@ -7,5 +7,6 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedRow[] {
   const sheetName = wb.SheetNames[0];
   if (!sheetName) return [];
   const sheet = wb.Sheets[sheetName];
+  if (!sheet) return [];
   return XLSX.utils.sheet_to_json<ParsedRow>(sheet, { defval: undefined, raw: false });
 }

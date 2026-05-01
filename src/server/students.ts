@@ -9,6 +9,8 @@ import { class_, section } from "@/lib/db/schema/academic";
 import { permittedStudentIds } from "@/lib/student-scoping";
 import { requireAbility } from "./session";
 import type { Role } from "@/lib/permissions";
+import { parseWorkbook } from "@/lib/excel/parse";
+import { validateStudentRows, commitStudentRows, type RawRow } from "@/lib/excel/students-importer";
 
 const studentSchema = z.object({
   admissionNo: z.string().min(1),
@@ -84,6 +86,33 @@ export async function createStudent(input: unknown, parents: unknown[] = []) {
     }
   });
   revalidatePath("/students");
+}
+
+export async function previewImport(buffer: ArrayBuffer) {
+  await requireAbility("students.import");
+  const rows = parseWorkbook(buffer) as RawRow[];
+  const sections = await db
+    .select({ id: section.id, name: section.name, className: class_.name })
+    .from(section)
+    .leftJoin(class_, eq(class_.id, section.classId));
+  const knownSections = new Map(sections.map((s) => [`${s.className} · ${s.name}`, s.id]));
+  return { rows: rows.length, ...validateStudentRows(rows, { knownSections }) };
+}
+
+export async function commitImport(buffer: ArrayBuffer) {
+  await requireAbility("students.import");
+  const rows = parseWorkbook(buffer) as RawRow[];
+  const sections = await db
+    .select({ id: section.id, name: section.name, className: class_.name })
+    .from(section)
+    .leftJoin(class_, eq(class_.id, section.classId));
+  const knownSections = new Map(sections.map((s) => [`${s.className} · ${s.name}`, s.id]));
+  const validation = validateStudentRows(rows, { knownSections });
+  if (validation.errors.length > 0) {
+    return { ok: false as const, errors: validation.errors, inserted: 0 };
+  }
+  const result = await commitStudentRows(db, validation.valid);
+  return { ok: true as const, inserted: result.inserted, errors: [] };
 }
 
 export async function getStudent(id: string) {
