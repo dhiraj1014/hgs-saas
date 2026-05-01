@@ -4,10 +4,11 @@
   --color-ink: #111418;
   --color-cream: #FBF7F0;
   --color-saffron: #D67A1F;
-  --color-saffron-light: #E89A4A;
-  --color-mute: #6B6F76;
-  --color-rule: #E8E2D5;
+  --color-mute: #6F6B65;
+  --color-rule: rgba(17, 20, 24, 0.10);
+}
 
+@theme inline {
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-sanskrit: var(--font-tiro), serif;
