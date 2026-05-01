@@ -19,6 +19,7 @@ const client = postgres(url);
 const tables = [
   "academic_year", "class", "section", "subject", "class_subject",
   "student", "parent", "parent_student", "teacher_assignment",
+  "attendance", "announcement", "notification_log", "otp_attempt",
   '"user"', "session", "account", "verification",
 ];
 try {

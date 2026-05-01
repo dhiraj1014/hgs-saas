@@ -30,6 +30,8 @@ const client = postgres(url);
 try {
   await client.unsafe(`
     TRUNCATE TABLE
+      notification_log, announcement, otp_attempt,
+      attendance,
       parent_student, parent, student,
       teacher_assignment, section, class_subject, subject, class, academic_year,
       account, session, verification, "user"
