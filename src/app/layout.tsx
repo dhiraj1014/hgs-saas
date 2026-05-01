@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter, Tiro_Devanagari_Hindi } from "next/font/google";
+import { Bricolage_Grotesque, Inter, Tiro_Devanagari_Hindi, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -28,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${inter.variable} ${tiro.variable}`}>
+    <html lang="en" className={cn(bricolage.variable, inter.variable, tiro.variable, "font-sans", geist.variable)}>
       <body className="bg-cream text-ink font-body antialiased">{children}</body>
     </html>
   );
