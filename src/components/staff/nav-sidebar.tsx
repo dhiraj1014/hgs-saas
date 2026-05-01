@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/shared/logo";
+import { can, type Ability, type Role } from "@/lib/permissions";
 
-const links = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/academic-years", label: "Academic years" },
-  { href: "/classes", label: "Classes & sections" },
-  { href: "/subjects", label: "Subjects" },
-  { href: "/students", label: "Students" },
-  { href: "/users", label: "Staff users" },
+type NavItem = { href: string; label: string; ability?: Ability };
+
+const ALL_LINKS: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard" }, // any signed-in staff
+  { href: "/academic-years", label: "Academic years", ability: "academic-years.manage" },
+  { href: "/classes", label: "Classes & sections", ability: "classes.manage" },
+  { href: "/subjects", label: "Subjects", ability: "subjects.manage" },
+  { href: "/students", label: "Students", ability: "students.view" },
+  { href: "/users", label: "Staff users", ability: "users.manage" },
 ];
 
-export function NavSidebar() {
+export function NavSidebar({ role }: { role: Role }) {
   const pathname = usePathname();
+  const links = ALL_LINKS.filter((l) => !l.ability || can(role, l.ability));
   return (
     <aside className="w-64 bg-white border-r border-rule p-6 hidden md:block">
       <Logo />
