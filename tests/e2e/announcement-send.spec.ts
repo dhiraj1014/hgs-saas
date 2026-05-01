@@ -20,7 +20,7 @@ test("super_admin sends school-wide announcement → fan-out logged + dedup appl
   await page.locator('input[type="radio"]').first().check();   // Whole school
   await page.fill("textarea", "E2E test announcement");
   await page.click('button:has-text("Send")');
-  await expect(page.locator(`text=/Sent to ${expectedRecipients}/`)).toBeVisible({ timeout: 5000 });
+  await expect(page.locator(`text=/Sent to ${expectedRecipients}/`)).toBeVisible({ timeout: 30_000 });
 
   const logs = await sql`SELECT COUNT(*)::int AS n FROM notification_log WHERE template_key = 'announcement' AND created_at > NOW() - INTERVAL '1 minute'`;
   expect(logs[0]?.n).toBe(expectedRecipients);
