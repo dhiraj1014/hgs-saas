@@ -75,3 +75,20 @@ export async function submitAttendance(formInput: unknown) {
   revalidatePath("/attendance");
   return result;
 }
+
+export async function listAttendanceByDate(date: string) {
+  await requireAbility("attendance.view-all");
+  return db
+    .select({
+      studentId: student.id, admissionNo: student.admissionNo,
+      firstName: student.firstName, lastName: student.lastName,
+      sectionName: section.name, className: class_.name,
+      status: attendance.status,
+    })
+    .from(attendance)
+    .innerJoin(student, eq(student.id, attendance.studentId))
+    .innerJoin(section, eq(section.id, attendance.sectionId))
+    .leftJoin(class_, eq(class_.id, section.classId))
+    .where(eq(attendance.date, date))
+    .orderBy(asc(class_.order), asc(section.name), asc(student.admissionNo));
+}
