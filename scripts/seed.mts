@@ -2,9 +2,10 @@
 import dns from "node:dns";
 dns.setDefaultResultOrder("ipv4first");
 
+import { eq } from "drizzle-orm";
 import { db } from "../src/lib/db";
 import { academicYear, class_, section, subject } from "../src/lib/db/schema/academic";
-import { student, parent, parentStudent } from "../src/lib/db/schema/people";
+import { student, parent, parentStudent, teacherAssignment } from "../src/lib/db/schema/people";
 import { user } from "../src/lib/db/schema/auth";
 import { auth } from "../src/lib/auth";
 
@@ -12,6 +13,7 @@ async function main() {
   console.log("Seeding…");
 
   // Wipe (dev only — never run in prod!)
+  await db.delete(teacherAssignment);
   await db.delete(parentStudent);
   await db.delete(parent);
   await db.delete(student);
@@ -74,6 +76,28 @@ async function main() {
   await auth.api.signUpEmail({
     body: { email: "teacher@hgs.local", password: "teacher1234", name: "Teacher", role: "class_teacher" },
   });
+
+  // Phase 1: a sample parent linked to first student for testing
+  const samplePhone = "+919999999999";
+  const sampleParent = await db.insert(parent).values({
+    fullName: "Sample Parent", phone: samplePhone,
+  }).returning();
+  if (sampleParent[0] && studentRows[0]) {
+    await db.insert(parentStudent).values({
+      parentId: sampleParent[0].id, studentId: studentRows[0].id, isPrimaryContact: true,
+    });
+  }
+  console.log(`Sample parent phone for testing: ${samplePhone}`);
+
+  // Phase 1: assign the teacher@hgs.local user to the first section as class_teacher
+  const teacherUserRows = await db.select().from(user).where(eq(user.email, "teacher@hgs.local"));
+  const teacherUser = teacherUserRows[0];
+  if (teacherUser && allSections[0]) {
+    await db.insert(teacherAssignment).values({
+      userId: teacherUser.id, sectionId: allSections[0].id, academicYearId: yr.id, roleInSection: "class_teacher",
+    });
+    console.log(`Assigned teacher@hgs.local as class_teacher of section ${allSections[0].id}`);
+  }
 
   console.log(`Done. ${studentRows.length} students seeded across ${allSections.length} sections.`);
   process.exit(0);

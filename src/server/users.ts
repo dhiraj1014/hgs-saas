@@ -12,7 +12,7 @@ const newUserSchema = z.object({
   password: z.string().min(8),
   name: z.string().min(1),
   role: z.enum(["super_admin", "principal", "office_staff", "accountant", "class_teacher", "subject_teacher"]),
-  phone: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 export async function listStaff() {
@@ -24,7 +24,7 @@ export async function createStaffUser(input: unknown) {
   await requireAbility("users.manage");
   const data = newUserSchema.parse(input);
   const result = await auth.api.signUpEmail({
-    body: { email: data.email, password: data.password, name: data.name, role: data.role, phone: data.phone },
+    body: { email: data.email, password: data.password, name: data.name, role: data.role, phoneNumber: data.phoneNumber },
   });
   if ("error" in result && result.error) {
     const err = result.error as { message?: string };

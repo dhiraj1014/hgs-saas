@@ -8,6 +8,13 @@
       "when": 1777626622952,
       "tag": "0000_thin_mystique",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1746057600000,
+      "tag": "0001_phase_1_attendance_comms",
+      "breakpoints": true
     }
   ]
 }

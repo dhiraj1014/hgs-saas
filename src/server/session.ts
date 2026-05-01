@@ -17,3 +17,12 @@ export async function requireAbility(ability: Ability) {
   }
   return session;
 }
+
+export async function requireParent() {
+  const session = await requireSession();
+  const role = (session.user as { role: string }).role;
+  if (role !== "parent") {
+    throw new Error("Parent role required");
+  }
+  return session;
+}

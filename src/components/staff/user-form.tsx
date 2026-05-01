@@ -20,7 +20,7 @@ export function UserForm() {
           try {
             await createStaffUser({
               email: fd.get("email"), password: fd.get("password"),
-              name: fd.get("name"), role: fd.get("role"), phone: fd.get("phone") || undefined,
+              name: fd.get("name"), role: fd.get("role"), phoneNumber: fd.get("phoneNumber") || undefined,
             });
           } catch (e) { setErr(e instanceof Error ? e.message : "Failed"); }
         });
@@ -29,7 +29,7 @@ export function UserForm() {
     >
       <div><Label>Name</Label><Input name="name" required /></div>
       <div><Label>Email</Label><Input name="email" type="email" required /></div>
-      <div><Label>Phone</Label><Input name="phone" /></div>
+      <div><Label>Phone</Label><Input name="phoneNumber" /></div>
       <div><Label>Role</Label>
         <select name="role" className="border border-rule rounded px-3 py-2 w-full">
           {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}

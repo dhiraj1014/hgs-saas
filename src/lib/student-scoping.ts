@@ -36,7 +36,7 @@ export async function permittedStudentIds(db: DB, ctx: ScopingContext): Promise<
   }
 
   if (ctx.role === "parent") {
-    const userRow = await db.select({ phone: user.phone }).from(user).where(eq(user.id, ctx.userId)).limit(1);
+    const userRow = await db.select({ phone: user.phoneNumber }).from(user).where(eq(user.id, ctx.userId)).limit(1);
     const phone = userRow[0]?.phone;
     if (!phone) return new Set();
     const parentRows = await db.select({ id: parent.id }).from(parent).where(eq(parent.phone, phone));

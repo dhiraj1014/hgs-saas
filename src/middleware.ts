@@ -1,23 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const STAFF_PREFIXES = ["/dashboard", "/students", "/classes", "/subjects", "/academic-years", "/users"];
+const STAFF_PREFIXES = ["/dashboard", "/students", "/classes", "/subjects", "/academic-years", "/users", "/attendance", "/announcements", "/notifications"];
+const PARENT_PREFIX = "/parent";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isStaffRoute = STAFF_PREFIXES.some((p) => pathname.startsWith(p));
-  if (!isStaffRoute) return NextResponse.next();
+  const isStaff = STAFF_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const isParent = pathname === PARENT_PREFIX || pathname.startsWith(PARENT_PREFIX + "/");
+  if (!isStaff && !isParent) return NextResponse.next();
 
-  const session = getSessionCookie(req);
-  if (!session) {
+  const sessionCookie = getSessionCookie(req);
+  if (!sessionCookie) {
     const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("from", pathname);
+    url.pathname = isParent ? "/parent-login" : "/login";
+    if (!isParent) url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|favicon.ico|logos|login).*)"],
+  matcher: ["/((?!api|_next|favicon.ico|logos|login|parent-login).*)"],
 };
