@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "create-admin": "dotenv -e .env.local -- tsx scripts/create-admin.mts",
+    "seed": "dotenv -e .env.local -- tsx scripts/seed.mts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
