@@ -1,13 +1,13 @@
 "use server";
 
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and, gte, lte, asc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { parent, parentStudent, student } from "@/lib/db/schema/people";
 import { class_, section } from "@/lib/db/schema/academic";
 import { checkAndRecordOtp } from "@/lib/otp-rate-limit";
 import { auth } from "@/lib/auth";
 import { requireParent } from "./session";
-import { notificationLog } from "@/lib/db/schema/communications";
+import { notificationLog, attendance } from "@/lib/db/schema/communications";
 
 export async function requestParentOtp(phone: string): Promise<{ ok: true }> {
   // Always return generic success — never leak which numbers are registered
@@ -44,4 +44,16 @@ export async function getLinkedStudents() {
     .leftJoin(class_, eq(class_.id, section.classId))
     .where(inArray(parentStudent.parentId, parents.map((p) => p.id)));
   return links;
+}
+
+export async function getChildAttendance(studentId: string, monthStart: string, monthEnd: string) {
+  await requireParent();
+  // Defense-in-depth: confirm the studentId belongs to this parent
+  const linked = await getLinkedStudents();
+  if (!linked.find((s) => s.studentId === studentId)) throw new Error("Not found");
+  return db
+    .select({ date: attendance.date, status: attendance.status })
+    .from(attendance)
+    .where(and(eq(attendance.studentId, studentId), gte(attendance.date, monthStart), lte(attendance.date, monthEnd)))
+    .orderBy(asc(attendance.date));
 }
