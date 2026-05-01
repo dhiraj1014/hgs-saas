@@ -2,7 +2,7 @@
 import { db } from "../db";
 import { createStubNotifier } from "./stub";
 import { createMsg91Notifier, type Msg91Config } from "./msg91";
-import type { NotificationResult, AttendanceAlertData, RelatedEntity, TemplateKey } from "./types";
+import type { Notifier, NotificationResult, AttendanceAlertData, RelatedEntity, TemplateKey } from "./types";
 
 if (process.env.NODE_ENV === "production" && !process.env.MSG91_AUTH_KEY) {
   throw new Error("MSG91_AUTH_KEY must be set in production");
@@ -28,10 +28,10 @@ export function resolveImpl(templateKey: TemplateKey): "msg91" | "stub" {
     templateKey === "parent_otp" ? process.env.MSG91_ENABLED_FOR_OTP :
     templateKey === "announcement" ? process.env.MSG91_ENABLED_FOR_ANNOUNCEMENTS :
     process.env.MSG91_ENABLED_FOR_ATTENDANCE;
-  return flag === "true" && msg91Config.authKey ? "msg91" : "stub";
+  return flag === "true" ? "msg91" : "stub";
 }
 
-export const notifier = {
+export const notifier: Notifier = {
   sendParentOtp(phone: string, code: string, related?: RelatedEntity): Promise<NotificationResult> {
     return resolveImpl("parent_otp") === "msg91"
       ? msg91.sendParentOtp(phone, code, related)

@@ -70,7 +70,8 @@ export function createMsg91Notifier(db: DB, config: Msg91Config): Notifier {
 
 async function sendWithRetry(authKey: string, body: unknown): Promise<NotificationResult> {
   const first = await sendOnce(authKey, body);
-  if (first.status === "sent" || first.errorClass !== "5xx") return toResult(first);
+  const isRetryable = first.errorClass === "5xx" || first.errorClass === "timeout";
+  if (first.status === "sent" || !isRetryable) return toResult(first);
   const second = await sendOnce(authKey, body);
   return toResult(second);
 }
