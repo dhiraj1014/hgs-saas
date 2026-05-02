@@ -3,8 +3,9 @@
 Internal school management web app for **Himalayan Global School** (Byapur, Patna). Single-tenant — built only for HGS, not a multi-tenant product.
 
 Authoritative docs:
-- [Phase 0 spec](docs/superpowers/specs/2026-05-01-hgs-school-saas-design.md) — full data model (~20 tables across phases), integrations, security model, phasing
+- [Umbrella spec](docs/superpowers/specs/2026-05-01-hgs-school-saas-design.md) — full data model (~20 tables across phases), integrations, security model, phasing
 - [Phase 0 plan](docs/superpowers/plans/2026-05-01-phase-0-foundation.md) — task-by-task implementation
+- [Phase 1 spec](docs/superpowers/specs/2026-05-01-phase-1-attendance-comms-design.md) · [plan](docs/superpowers/plans/2026-05-01-phase-1-attendance-comms.md) — attendance + parent comms
 - [`CLAUDE.md`](CLAUDE.md) — project guide for AI coding agents (architecture, conventions, quirks)
 
 ## Stack
@@ -81,11 +82,13 @@ pnpm create-admin "<email>" "<strong-password>" "Director Name"
 
 Phase 0 (✓ shipped) — foundation, auth, role model, academic data model, students CRUD, Excel bulk import, staff user management.
 
+Phase 1 (✓ shipped) — daily attendance marking by class teachers, post-commit SMS fan-out to parents (absent / late) via MSG91, school/class/section announcements, parent OTP login, parent portal (dashboard, attendance month view, announcements feed, SMS history), notifications log for admins.
+
 Upcoming phases (each gets its own brainstorm → spec → plan → implement cycle, see the [umbrella spec](docs/superpowers/specs/2026-05-01-hgs-school-saas-design.md)):
 
-1. Attendance + parent communication (SMS via MSG91, WhatsApp via AiSensy)
-2. Fees (Razorpay UPI/cards, receipt PDFs)
-3. Admissions (public enquiry form embedded on `hgs-web`)
-4. Exams + report cards (CBSE format)
+1. Fees (Razorpay UPI/cards, receipt PDFs)
+2. Admissions (public enquiry form embedded on `hgs-web`)
+3. Exams + report cards (CBSE format)
+4. WhatsApp parent comms (AiSensy or MSG91 WhatsApp API) — once DLT-approved templates land
 
 Each phase ships a usable thing on its own.
