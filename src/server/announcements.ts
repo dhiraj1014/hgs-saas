@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { announcement } from "@/lib/db/schema/communications";
 import { sendAnnouncement, type SendAnnouncementInput } from "@/lib/announcement-core";
 import { requireAbility, requireParent } from "./session";
-import { getLinkedStudents } from "./parent";
+import { getLinkedStudents } from "./parent-queries";
 import { section } from "@/lib/db/schema/academic";
 import { student } from "@/lib/db/schema/people";
 

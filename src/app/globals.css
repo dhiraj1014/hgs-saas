@@ -6,10 +6,18 @@
 
 @theme {
   --color-ink: #111418;
+  --color-ink-soft: #2A2E33;
   --color-cream: #FBF7F0;
+  --color-cream-2: #F2EBDD;
+  --color-paper: #FFFFFF;
   --color-saffron: #D67A1F;
+  --color-saffron-d: #B26116;
+  --color-saffron-soft: #F5C681;
+  --color-saffron-wash: rgba(214, 122, 31, 0.10);
   --color-mute: #6F6B65;
+  --color-mute-2: #9A958E;
   --color-rule: rgba(17, 20, 24, 0.10);
+  --color-rule-2: rgba(17, 20, 24, 0.06);
 }
 
 @theme inline {

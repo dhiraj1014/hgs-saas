@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { NavSidebar } from "@/components/staff/nav-sidebar";
 import { Header } from "@/components/staff/header";
+import { Toaster } from "@/components/ui/sonner";
 import type { Role } from "@/lib/permissions";
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
@@ -12,12 +13,15 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   if (!role || role === "parent") redirect("/login");
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-cream">
       <NavSidebar role={role} />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header role={role} />
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-7xl px-6 py-8">{children}</div>
+        </main>
       </div>
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "create-admin": "dotenv -e .env.local -- tsx scripts/create-admin.mts",
     "seed": "dotenv -e .env.local -- tsx scripts/seed.mts",
+    "get-otp": "dotenv -e .env.local -- tsx scripts/get-otp.mts",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test"

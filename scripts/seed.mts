@@ -7,12 +7,15 @@ import { db } from "../src/lib/db";
 import { academicYear, class_, section, subject } from "../src/lib/db/schema/academic";
 import { student, parent, parentStudent, teacherAssignment } from "../src/lib/db/schema/people";
 import { user } from "../src/lib/db/schema/auth";
+import { attendance, announcement } from "../src/lib/db/schema/communications";
 import { auth } from "../src/lib/auth";
 
 async function main() {
   console.log("Seeding…");
 
   // Wipe (dev only — never run in prod!)
+  await db.delete(attendance);
+  await db.delete(announcement);
   await db.delete(teacherAssignment);
   await db.delete(parentStudent);
   await db.delete(parent);
@@ -97,6 +100,70 @@ async function main() {
       userId: teacherUser.id, sectionId: allSections[0].id, academicYearId: yr.id, roleInSection: "class_teacher",
     });
     console.log(`Assigned teacher@hgs.local as class_teacher of section ${allSections[0].id}`);
+  }
+
+  // Phase 1 demo data: plant attendance for the past 7 days for the first 3 sections,
+  // and a couple of announcements, so the staff/parent dashboards aren't empty after seed.
+  const adminRows = await db.select().from(user).where(eq(user.email, "admin@hgs.local"));
+  const admin = adminRows[0];
+  if (admin) {
+    const sectionsForDemo = allSections.slice(0, 3);
+    const studentsBySection = new Map<string, typeof studentRows>();
+    for (const s of studentRows) {
+      const arr = studentsBySection.get(s.currentSectionId!) ?? [];
+      arr.push(s);
+      studentsBySection.set(s.currentSectionId!, arr);
+    }
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const days: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setUTCDate(today.getUTCDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+
+    const attendanceRows: { studentId: string; sectionId: string; date: string; status: string; markedBy: string }[] = [];
+    let tick = 0;
+    for (const sec of sectionsForDemo) {
+      const sectionStudents = studentsBySection.get(sec.id) ?? [];
+      for (const day of days) {
+        for (const stu of sectionStudents) {
+          // ~85% present, ~10% absent, ~5% late — deterministic via tick
+          const r = (tick++ * 37) % 100;
+          const status = r < 85 ? "present" : r < 95 ? "absent" : "late";
+          attendanceRows.push({
+            studentId: stu.id,
+            sectionId: sec.id,
+            date: day,
+            status,
+            markedBy: admin.id,
+          });
+        }
+      }
+    }
+    if (attendanceRows.length > 0) {
+      await db.insert(attendance).values(attendanceRows);
+      console.log(`Planted ${attendanceRows.length} attendance rows across ${sectionsForDemo.length} sections × ${days.length} days.`);
+    }
+
+    await db.insert(announcement).values([
+      {
+        sentBy: admin.id,
+        audienceType: "school",
+        audienceRef: null,
+        body: "Welcome to the new academic session! Classes resume Monday at 8:00 AM. Please ensure students bring their updated booklists.",
+        recipientCount: studentRows.length,
+      },
+      {
+        sentBy: admin.id,
+        audienceType: "school",
+        audienceRef: null,
+        body: "Annual Sports Day is scheduled for next Saturday. Parents are warmly invited. Detailed schedule will follow.",
+        recipientCount: studentRows.length,
+      },
+    ]);
+    console.log("Planted 2 demo announcements.");
   }
 
   console.log(`Done. ${studentRows.length} students seeded across ${allSections.length} sections.`);
