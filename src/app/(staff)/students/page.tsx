@@ -1,35 +1,92 @@
 import Link from "next/link";
 import { Plus, Upload } from "lucide-react";
-import { listStudents } from "@/server/students";
+import { listStudents, listSectionsForFilter, type StudentSortKey } from "@/server/students";
+import { STUDENTS_DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { StudentsTable } from "@/components/staff/students-table";
+import { StudentsToolbar } from "@/components/staff/students-toolbar";
 import { PageHeader } from "@/components/shared/page-header";
+import {
+  HEADER_ACTION_PRIMARY,
+  HEADER_ACTION_SECONDARY,
+  HeaderActionsRow,
+} from "@/components/shared/header-actions";
+import { TablePagination } from "@/components/ui/table-pagination";
+import type { SortDir } from "@/components/ui/sortable-th";
 
-export default async function StudentsPage() {
-  const rows = await listStudents();
+const VALID_SORT: Record<string, StudentSortKey> = {
+  admissionNo: "admissionNo",
+  firstName: "firstName",
+  status: "status",
+};
+
+export default async function StudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const params = await searchParams;
+  const q = params.q ?? "";
+  const sectionId = params.section ?? "";
+  const status = params.status ?? "";
+  const sort = (params.sort && VALID_SORT[params.sort]) ?? undefined;
+  const dir: SortDir | undefined = params.dir === "desc" ? "desc" : params.dir === "asc" ? "asc" : undefined;
+  const page = Math.max(1, Number(params.page) || 1);
+
+  const [{ rows, total }, sections] = await Promise.all([
+    listStudents({
+      q: q || undefined,
+      sectionId: sectionId || undefined,
+      status: status || undefined,
+      sort,
+      dir,
+      page,
+      size: STUDENTS_DEFAULT_PAGE_SIZE,
+    }),
+    listSectionsForFilter(),
+  ]);
+
+  const hasActiveFilter = !!(q || sectionId || status);
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Roster"
         title="Students"
-        description={`${rows.length} student${rows.length === 1 ? "" : "s"} on record.`}
+        description={`${total} student${total === 1 ? "" : "s"}${hasActiveFilter ? " matching" : ""}.`}
         action={
-          <>
-            <Link
-              href="/students/import"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-rule bg-white px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-cream"
-            >
+          <HeaderActionsRow>
+            <Link href="/students/import" className={HEADER_ACTION_SECONDARY}>
               <Upload className="size-3.5" /> Import from Excel
             </Link>
-            <Link
-              href="/students/new"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-saffron px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-[#B26116] hover:text-white"
-            >
+            <Link href="/students/new" className={HEADER_ACTION_PRIMARY}>
               <Plus className="size-3.5" /> New student
             </Link>
-          </>
+          </HeaderActionsRow>
         }
       />
-      <StudentsTable rows={rows} />
+
+      <StudentsToolbar
+        sections={sections}
+        initialQ={q}
+        initialSection={sectionId}
+        initialStatus={status}
+      />
+
+      <StudentsTable
+        rows={rows}
+        sortKey={sort}
+        sortDir={dir}
+        searchParams={params}
+        hasActiveFilter={hasActiveFilter}
+      />
+
+      <TablePagination
+        total={total}
+        page={page}
+        size={STUDENTS_DEFAULT_PAGE_SIZE}
+        basePath="/students"
+        searchParams={params}
+      />
     </div>
   );
 }

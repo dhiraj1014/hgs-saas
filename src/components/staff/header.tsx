@@ -37,10 +37,10 @@ export function Header({
   const sessionRole = (data?.user as { role?: string } | undefined)?.role ?? role;
   const initial = (data?.user?.name ?? email).charAt(0).toUpperCase();
 
-  // Close drawer on route change. Setting state in this effect is the
-  // intended pattern (sync with navigation), so silence the lint rule.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // Close drawer on route change. Setting state here is the intended pattern
+  // (sync with navigation), so silence the lint rule.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen((o) => (o ? false : o));
   }, [pathname]);
 

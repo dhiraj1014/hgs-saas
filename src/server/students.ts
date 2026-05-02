@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, ilike, or, type SQL } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -32,24 +32,71 @@ const parentEntry = z.object({
   isPrimaryContact: z.boolean().optional(),
 });
 
-export async function listStudents(filter?: { sectionId?: string }) {
+export type StudentSortKey = "admissionNo" | "firstName" | "status";
+export type SortDir = "asc" | "desc";
+
+const STUDENT_SORT_COLUMNS = {
+  admissionNo: student.admissionNo,
+  firstName: student.firstName,
+  status: student.status,
+} as const;
+
+export async function listStudents(filter?: {
+  sectionId?: string;
+  status?: string;
+  q?: string;
+  sort?: StudentSortKey;
+  dir?: SortDir;
+  page?: number;
+  size?: number;
+}) {
   const session = await requireAbility("students.view");
-  const allowed = await permittedStudentIds(db, { userId: session.user.id, role: (session.user as { role: Role }).role });
-  if (allowed.size === 0) return [];
+  const allowed = await permittedStudentIds(db, {
+    userId: session.user.id,
+    role: (session.user as { role: Role }).role,
+  });
+  if (allowed.size === 0) return { rows: [], total: 0 };
 
-  const conditions = [inArray(student.id, [...allowed])];
+  const conditions: SQL[] = [inArray(student.id, [...allowed])];
   if (filter?.sectionId) conditions.push(eq(student.currentSectionId, filter.sectionId));
+  if (filter?.status) conditions.push(eq(student.status, filter.status));
+  if (filter?.q && filter.q.trim()) {
+    const term = `%${filter.q.trim()}%`;
+    const orExpr = or(
+      ilike(student.admissionNo, term),
+      ilike(student.firstName, term),
+      ilike(student.lastName, term),
+    );
+    if (orExpr) conditions.push(orExpr);
+  }
 
-  return db
-    .select({
-      id: student.id, admissionNo: student.admissionNo, firstName: student.firstName, lastName: student.lastName,
-      sectionName: section.name, className: class_.name, status: student.status,
-    })
-    .from(student)
-    .leftJoin(section, eq(section.id, student.currentSectionId))
-    .leftJoin(class_, eq(class_.id, section.classId))
-    .where(and(...conditions))
-    .orderBy(asc(student.admissionNo));
+  const sortKey: StudentSortKey = filter?.sort ?? "admissionNo";
+  const sortCol = STUDENT_SORT_COLUMNS[sortKey];
+  const sortFn = filter?.dir === "desc" ? desc : asc;
+
+  const size = Math.max(1, Math.min(100, filter?.size ?? 20));
+  const page = Math.max(1, filter?.page ?? 1);
+  const offset = (page - 1) * size;
+
+  const whereClause = and(...conditions);
+
+  const [rows, totalRow] = await Promise.all([
+    db
+      .select({
+        id: student.id, admissionNo: student.admissionNo, firstName: student.firstName, lastName: student.lastName,
+        sectionName: section.name, className: class_.name, status: student.status,
+      })
+      .from(student)
+      .leftJoin(section, eq(section.id, student.currentSectionId))
+      .leftJoin(class_, eq(class_.id, section.classId))
+      .where(whereClause)
+      .orderBy(sortFn(sortCol))
+      .limit(size)
+      .offset(offset),
+    db.select({ n: count() }).from(student).where(whereClause),
+  ]);
+
+  return { rows, total: totalRow[0]?.n ?? 0 };
 }
 
 export async function listSectionsForFilter() {

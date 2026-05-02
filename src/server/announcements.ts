@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, type SQL } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -39,9 +39,55 @@ export async function submitAnnouncement(formInput: unknown) {
   return result;
 }
 
-export async function listAnnouncements() {
+export type AnnouncementSortKey = "sentAt" | "audienceType" | "recipientCount";
+export type SortDir = "asc" | "desc";
+
+const ANN_SORT_COLUMNS = {
+  sentAt: announcement.sentAt,
+  audienceType: announcement.audienceType,
+  recipientCount: announcement.recipientCount,
+} as const;
+
+export async function listAnnouncements(filter?: {
+  q?: string;
+  audience?: string;
+  sort?: AnnouncementSortKey;
+  dir?: SortDir;
+  page?: number;
+  size?: number;
+}) {
   await requireAbility("announcements.view");
-  return db.select().from(announcement).orderBy(desc(announcement.sentAt)).limit(50);
+
+  const conditions: SQL[] = [];
+  if (filter?.audience) conditions.push(eq(announcement.audienceType, filter.audience));
+  if (filter?.q && filter.q.trim()) {
+    conditions.push(ilike(announcement.body, `%${filter.q.trim()}%`));
+  }
+
+  const sortKey: AnnouncementSortKey = filter?.sort ?? "sentAt";
+  const sortCol = ANN_SORT_COLUMNS[sortKey];
+  const dir = filter?.dir ?? (sortKey === "sentAt" ? "desc" : "asc");
+  const sortFn = dir === "desc" ? desc : asc;
+
+  const size = Math.max(1, Math.min(100, filter?.size ?? 50));
+  const page = Math.max(1, filter?.page ?? 1);
+  const offset = (page - 1) * size;
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const rowsQuery = db.select().from(announcement).$dynamic();
+  const countQuery = db.select({ n: count() }).from(announcement).$dynamic();
+  if (whereClause) {
+    rowsQuery.where(whereClause);
+    countQuery.where(whereClause);
+  }
+
+  const [rows, totalRow] = await Promise.all([
+    rowsQuery.orderBy(sortFn(sortCol)).limit(size).offset(offset),
+    countQuery,
+  ]);
+
+  return { rows, total: totalRow[0]?.n ?? 0 };
 }
 
 export async function listAnnouncementsForParent() {
