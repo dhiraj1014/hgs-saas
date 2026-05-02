@@ -44,3 +44,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /scripts/get-otp.mts
+
+# claude code — personal overrides only
+.claude/settings.local.json
