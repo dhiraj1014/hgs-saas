@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "@/components/shared/logo-mark";
@@ -19,7 +19,15 @@ const ROLE_LABEL: Record<string, string> = {
   parent: "Parent",
 };
 
-export function Header({ role }: { role: Role }) {
+export function Header({
+  role,
+  collapsed = false,
+  onToggleCollapsed,
+}: {
+  role: Role;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { data } = useSession();
@@ -53,7 +61,7 @@ export function Header({ role }: { role: Role }) {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-rule bg-white px-4 md:px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-rule bg-white px-4 md:px-6">
         <div className={cn("flex items-center gap-3", open && "md:flex hidden")}>
           <button
             type="button"
@@ -69,6 +77,22 @@ export function Header({ role }: { role: Role }) {
             <LogoMark size="sm" />
             <span className="font-display text-sm font-semibold tracking-tight text-ink">HGS</span>
           </Link>
+
+          {onToggleCollapsed && (
+            <button
+              type="button"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-pressed={collapsed}
+              onClick={onToggleCollapsed}
+              className="hidden size-9 cursor-pointer place-items-center rounded-lg text-mute transition-colors hover:bg-cream hover:text-ink md:grid"
+            >
+              {collapsed ? (
+                <PanelLeftOpen className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
+            </button>
+          )}
 
           <div className="hidden items-center gap-3 md:flex">
             <span className="grid size-8 place-items-center rounded-full bg-saffron/10 font-display text-sm font-semibold text-[#B26116]">

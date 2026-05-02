@@ -36,15 +36,15 @@ export function StudentsTable({ rows }: { rows: Row[] }) {
   }
 
   return (
-    <Card className="bg-white p-0">
-      <div className="overflow-x-auto rounded-xl">
+    <div className="rounded-2xl border border-rule bg-white">
+      <div className="rounded-2xl">
         <table className="w-full text-sm">
-          <thead className="bg-cream">
+          <thead className="sticky top-0 z-10 bg-cream/95 shadow-[0_1px_0_var(--color-rule)] backdrop-blur supports-[backdrop-filter]:bg-cream/80">
             <tr className="text-left text-[11px] uppercase tracking-wider text-mute">
-              <th className="px-4 py-3 font-semibold">Adm. no</th>
+              <th className="px-4 py-3 font-semibold first:rounded-tl-2xl">Adm. no</th>
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Class · Section</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-semibold last:rounded-tr-2xl">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-rule">
@@ -88,6 +88,6 @@ export function StudentsTable({ rows }: { rows: Row[] }) {
           </tbody>
         </table>
       </div>
-    </Card>
+    </div>
   );
 }

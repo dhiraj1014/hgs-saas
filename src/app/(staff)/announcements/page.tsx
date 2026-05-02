@@ -32,15 +32,15 @@ export default async function AnnouncementsPage() {
           <CardContent className="py-10 text-center text-sm text-mute">No announcements yet.</CardContent>
         </Card>
       ) : (
-        <Card className="bg-white p-0">
-          <div className="overflow-hidden rounded-xl">
+        <div className="rounded-2xl border border-rule bg-white">
+          <div className="rounded-2xl">
             <table className="w-full text-sm">
-              <thead className="bg-cream">
+              <thead className="sticky top-0 z-10 bg-cream/95 shadow-[0_1px_0_var(--color-rule)] backdrop-blur supports-[backdrop-filter]:bg-cream/80">
                 <tr className="text-left text-[11px] uppercase tracking-wider text-mute">
-                  <th className="px-4 py-3 font-semibold">Sent at</th>
+                  <th className="px-4 py-3 font-semibold first:rounded-tl-2xl">Sent at</th>
                   <th className="px-4 py-3 font-semibold">Audience</th>
                   <th className="px-4 py-3 font-semibold">Recipients</th>
-                  <th className="px-4 py-3 font-semibold">Body</th>
+                  <th className="px-4 py-3 font-semibold last:rounded-tr-2xl">Body</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-rule">
@@ -59,7 +59,7 @@ export default async function AnnouncementsPage() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );
