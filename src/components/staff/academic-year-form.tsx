@@ -2,8 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Field,
+  FieldCheckbox,
+  FieldGrid,
+  FieldInput,
+  FieldLabel,
+  FormActions,
+  FormCard,
+  FormStatus,
+} from "@/components/ui/field";
 import { createAcademicYear } from "@/server/academic-years";
 
 export function AcademicYearForm() {
@@ -27,13 +35,33 @@ export function AcademicYearForm() {
   }
 
   return (
-    <form action={onSubmit} className="space-y-3 max-w-md">
-      <div><Label htmlFor="name">Name</Label><Input id="name" name="name" placeholder="2026-27" required /></div>
-      <div><Label htmlFor="startDate">Start date</Label><Input id="startDate" name="startDate" type="date" required /></div>
-      <div><Label htmlFor="endDate">End date</Label><Input id="endDate" name="endDate" type="date" required /></div>
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isCurrent" /> Set as current</label>
-      {err && <p className="text-sm text-red-600">{err}</p>}
-      <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Add academic year"}</Button>
-    </form>
+    <FormCard>
+      <form action={onSubmit}>
+        <FieldGrid>
+          <Field full>
+            <FieldLabel htmlFor="name" required>Name</FieldLabel>
+            <FieldInput id="name" name="name" placeholder="2026-27" required />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="startDate" required>Start date</FieldLabel>
+            <FieldInput id="startDate" name="startDate" type="date" required />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="endDate" required>End date</FieldLabel>
+            <FieldInput id="endDate" name="endDate" type="date" required />
+          </Field>
+          <Field full>
+            <FieldCheckbox name="isCurrent" label="Set as current academic year" />
+          </Field>
+        </FieldGrid>
+
+        <FormActions>
+          {err && <FormStatus tone="error">{err}</FormStatus>}
+          <Button type="submit" variant="saffron" disabled={pending} className="h-10 px-5 text-sm">
+            {pending ? "Saving…" : "Add academic year"}
+          </Button>
+        </FormActions>
+      </form>
+    </FormCard>
   );
 }

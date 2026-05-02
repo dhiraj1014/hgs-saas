@@ -156,7 +156,7 @@ export default async function DashboardPage() {
               {myAssignedSections.length === 0 ? (
                 <div className="rounded-lg bg-cream p-5 text-center">
                   <CalendarCheck className="mx-auto mb-2 size-6 text-mute" />
-                  <p className="text-sm text-ink">You don't have any section assignments yet.</p>
+                  <p className="text-sm text-ink">You don&apos;t have any section assignments yet.</p>
                   <p className="mt-1 text-xs text-mute">Ask the office to assign you as class teacher of a section.</p>
                 </div>
               ) : (

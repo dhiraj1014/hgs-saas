@@ -5,11 +5,15 @@ import { requireAbility } from "@/server/session";
 import { can } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
 import { AnnouncementComposer } from "@/components/staff/announcement-composer";
+import { PageHeader } from "@/components/shared/page-header";
 
 export default async function NewAnnouncementPage() {
   const session = await requireAbility("announcements.send");
   const role = (session.user as { role: Role }).role;
-  const classes = await db.select({ id: class_.id, name: class_.name }).from(class_).orderBy(asc(class_.order));
+  const classes = await db
+    .select({ id: class_.id, name: class_.name })
+    .from(class_)
+    .orderBy(asc(class_.order));
   const sections = await db
     .select({ id: section.id, name: section.name, className: class_.name })
     .from(section)
@@ -17,9 +21,17 @@ export default async function NewAnnouncementPage() {
     .orderBy(asc(class_.order), asc(section.name));
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-serif">New announcement</h1>
-      <AnnouncementComposer classes={classes} sections={sections} allowSchoolWide={can(role, "announcements.send-school-wide")} />
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Communications"
+        title="New announcement"
+        description="Pick an audience and compose your message — sent as SMS to parents."
+      />
+      <AnnouncementComposer
+        classes={classes}
+        sections={sections}
+        allowSchoolWide={can(role, "announcements.send-school-wide")}
+      />
     </div>
   );
 }

@@ -153,7 +153,7 @@ function StatusGroup({
             title={label}
             onClick={() => onChange(v)}
             className={cn(
-              "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3.5 text-xs font-medium ring-1 ring-transparent transition-all sm:px-4",
+              "inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 text-xs font-medium ring-1 ring-transparent transition-all sm:px-4",
               active ? activeClass : "text-mute hover:bg-white hover:text-ink",
             )}
           >

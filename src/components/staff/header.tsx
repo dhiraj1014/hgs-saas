@@ -29,9 +29,11 @@ export function Header({ role }: { role: Role }) {
   const sessionRole = (data?.user as { role?: string } | undefined)?.role ?? role;
   const initial = (data?.user?.name ?? email).charAt(0).toUpperCase();
 
-  // Close drawer on route change
+  // Close drawer on route change. Setting state in this effect is the
+  // intended pattern (sync with navigation), so silence the lint rule.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setOpen(false);
+    setOpen((o) => (o ? false : o));
   }, [pathname]);
 
   // Lock body scroll while drawer is open
@@ -58,7 +60,7 @@ export function Header({ role }: { role: Role }) {
             aria-label="Open menu"
             aria-expanded={open}
             onClick={() => setOpen(true)}
-            className="grid size-9 place-items-center rounded-lg text-ink transition-colors hover:bg-cream md:hidden"
+            className="grid size-9 cursor-pointer place-items-center rounded-lg text-ink transition-colors hover:bg-cream md:hidden"
           >
             <Menu className="size-5" />
           </button>
@@ -152,7 +154,7 @@ function MobileDrawer({
             type="button"
             aria-label="Close menu"
             onClick={onClose}
-            className="grid size-8 place-items-center rounded-full text-mute transition-colors hover:bg-cream hover:text-ink"
+            className="grid size-8 cursor-pointer place-items-center rounded-full text-mute transition-colors hover:bg-cream hover:text-ink"
           >
             <X className="size-4" />
           </button>

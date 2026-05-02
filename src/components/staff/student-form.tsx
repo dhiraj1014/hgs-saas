@@ -2,8 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Field,
+  FieldCombobox,
+  FieldGrid,
+  FieldInput,
+  FieldLabel,
+  FormActions,
+  FormCard,
+  FormStatus,
+} from "@/components/ui/field";
 import { createStudent } from "@/server/students";
 import { ParentFieldset, type ParentInput } from "./parent-fieldset";
 
@@ -15,50 +23,104 @@ export function StudentForm({ sections }: { sections: Section[] }) {
   const [err, setErr] = useState<string | null>(null);
 
   return (
-    <form
-      action={(fd) => {
-        setErr(null);
-        start(async () => {
-          try {
-            await createStudent({
-              admissionNo: fd.get("admissionNo"),
-              firstName: fd.get("firstName"),
-              lastName: fd.get("lastName"),
-              dob: fd.get("dob") || undefined,
-              gender: fd.get("gender") || undefined,
-              bloodGroup: fd.get("bloodGroup") || undefined,
-              address: fd.get("address") || undefined,
-              currentSectionId: fd.get("currentSectionId") || undefined,
-              dateOfAdmission: fd.get("dateOfAdmission") || undefined,
-            }, parents);
-          } catch (e) {
-            setErr(e instanceof Error ? e.message : "Failed");
-          }
-        });
-      }}
-      className="space-y-4 max-w-2xl"
-    >
-      <div className="grid grid-cols-2 gap-3">
-        <div><Label>Admission no</Label><Input name="admissionNo" required /></div>
-        <div><Label>Section</Label>
-          <select name="currentSectionId" className="border border-rule rounded px-3 py-2 w-full">
-            <option value="">— Unassigned —</option>
-            {sections.map((s) => <option key={s.id} value={s.id}>{s.className} · {s.name}</option>)}
-          </select>
+    <FormCard>
+      <form
+        action={(fd) => {
+          setErr(null);
+          start(async () => {
+            try {
+              await createStudent(
+                {
+                  admissionNo: fd.get("admissionNo"),
+                  firstName: fd.get("firstName"),
+                  lastName: fd.get("lastName"),
+                  dob: fd.get("dob") || undefined,
+                  gender: fd.get("gender") || undefined,
+                  bloodGroup: fd.get("bloodGroup") || undefined,
+                  address: fd.get("address") || undefined,
+                  currentSectionId: fd.get("currentSectionId") || undefined,
+                  dateOfAdmission: fd.get("dateOfAdmission") || undefined,
+                },
+                parents,
+              );
+            } catch (e) {
+              setErr(e instanceof Error ? e.message : "Failed");
+            }
+          });
+        }}
+      >
+        <FieldGrid>
+          <Field>
+            <FieldLabel htmlFor="admissionNo" required>Admission no</FieldLabel>
+            <FieldInput id="admissionNo" name="admissionNo" required placeholder="HGS0001" />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="currentSectionId">Section</FieldLabel>
+            <FieldCombobox
+              id="currentSectionId"
+              name="currentSectionId"
+              placeholder="— Unassigned —"
+              options={sections.map((s) => ({ value: s.id, label: `${s.className} · ${s.name}` }))}
+            />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="firstName" required>First name</FieldLabel>
+            <FieldInput id="firstName" name="firstName" required />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="lastName" required>Last name</FieldLabel>
+            <FieldInput id="lastName" name="lastName" required />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="dob">Date of birth</FieldLabel>
+            <FieldInput id="dob" name="dob" type="date" />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="gender">Gender</FieldLabel>
+            <FieldCombobox
+              id="gender"
+              name="gender"
+              placeholder="—"
+              options={[
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+                { value: "other", label: "Other" },
+              ]}
+            />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="bloodGroup">Blood group</FieldLabel>
+            <FieldInput id="bloodGroup" name="bloodGroup" placeholder="e.g. O+" />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="dateOfAdmission">Date of admission</FieldLabel>
+            <FieldInput id="dateOfAdmission" name="dateOfAdmission" type="date" />
+          </Field>
+
+          <Field full>
+            <FieldLabel htmlFor="address">Address</FieldLabel>
+            <FieldInput id="address" name="address" placeholder="House no, street, locality" />
+          </Field>
+        </FieldGrid>
+
+        <div className="mt-8">
+          <ParentFieldset value={parents} onChange={setParents} />
         </div>
-        <div><Label>First name</Label><Input name="firstName" required /></div>
-        <div><Label>Last name</Label><Input name="lastName" required /></div>
-        <div><Label>Date of birth</Label><Input name="dob" type="date" /></div>
-        <div><Label>Gender</Label><Input name="gender" /></div>
-        <div><Label>Blood group</Label><Input name="bloodGroup" /></div>
-        <div><Label>Date of admission</Label><Input name="dateOfAdmission" type="date" /></div>
-      </div>
-      <div><Label>Address</Label><Input name="address" /></div>
 
-      <ParentFieldset value={parents} onChange={setParents} />
-
-      {err && <p className="text-sm text-red-600">{err}</p>}
-      <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Create student"}</Button>
-    </form>
+        <FormActions>
+          {err && <FormStatus tone="error">{err}</FormStatus>}
+          <Button type="submit" variant="saffron" disabled={pending} className="h-10 px-5 text-sm">
+            {pending ? "Saving…" : "Create student"}
+          </Button>
+        </FormActions>
+      </form>
+    </FormCard>
   );
 }

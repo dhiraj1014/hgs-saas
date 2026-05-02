@@ -47,7 +47,7 @@ export function ParentShell({
                 await signOut();
                 router.push("/parent-login");
               }}
-              className="grid size-8 place-items-center rounded-full text-mute transition-colors hover:bg-ink/5 hover:text-ink"
+              className="grid size-8 cursor-pointer place-items-center rounded-full text-mute transition-colors hover:bg-ink/5 hover:text-ink"
             >
               <LogOut className="size-4" />
             </button>

@@ -1,9 +1,14 @@
 import { ImportWizard } from "@/components/staff/import-wizard";
+import { PageHeader } from "@/components/shared/page-header";
 
 export default function ImportPage() {
   return (
-    <div className="space-y-6 max-w-3xl">
-      <h1 className="text-2xl font-display font-semibold text-ink">Import students</h1>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Bulk admissions"
+        title="Import students"
+        description="Upload a spreadsheet to create many students at once."
+      />
       <ImportWizard />
     </div>
   );
