@@ -50,7 +50,7 @@ export default async function NotificationsPage({
   const q = params.q ?? "";
   const status = params.status ?? "";
   const template = params.template ?? "";
-  const sort = (params.sort && VALID_SORT[params.sort]) ?? undefined;
+  const sort = params.sort ? VALID_SORT[params.sort] : undefined;
   const dir: SortDir | undefined = params.dir === "desc" ? "desc" : params.dir === "asc" ? "asc" : undefined;
   const range: NotificationRange =
     params.range === "30d" ? "30d" : params.range === "all" ? "all" : "7d";

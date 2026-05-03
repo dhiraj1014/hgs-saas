@@ -29,7 +29,7 @@ export default async function AnnouncementsPage({
 
   const q = params.q ?? "";
   const audience = params.audience ?? "";
-  const sort = (params.sort && VALID_SORT[params.sort]) ?? undefined;
+  const sort = params.sort ? VALID_SORT[params.sort] : undefined;
   const dir: SortDir | undefined = params.dir === "desc" ? "desc" : params.dir === "asc" ? "asc" : undefined;
   const page = Math.max(1, Number(params.page) || 1);
 

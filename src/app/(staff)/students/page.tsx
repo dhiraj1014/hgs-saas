@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus, Upload } from "lucide-react";
-import { listStudents, listSectionsForFilter, type StudentSortKey } from "@/server/students";
+import { listStudents, listSectionsForFilter, type StudentSortKey, type StudentStatus } from "@/server/students";
 import { STUDENTS_DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { StudentsTable } from "@/components/staff/students-table";
 import { StudentsToolbar } from "@/components/staff/students-toolbar";
@@ -19,6 +19,12 @@ const VALID_SORT: Record<string, StudentSortKey> = {
   status: "status",
 };
 
+const VALID_STATUS: Record<string, StudentStatus> = {
+  active: "active",
+  left: "left",
+  graduated: "graduated",
+};
+
 export default async function StudentsPage({
   searchParams,
 }: {
@@ -28,7 +34,8 @@ export default async function StudentsPage({
   const q = params.q ?? "";
   const sectionId = params.section ?? "";
   const status = params.status ?? "";
-  const sort = (params.sort && VALID_SORT[params.sort]) ?? undefined;
+  const statusFilter = params.status ? VALID_STATUS[params.status] : undefined;
+  const sort = params.sort ? VALID_SORT[params.sort] : undefined;
   const dir: SortDir | undefined = params.dir === "desc" ? "desc" : params.dir === "asc" ? "asc" : undefined;
   const page = Math.max(1, Number(params.page) || 1);
 
@@ -36,7 +43,7 @@ export default async function StudentsPage({
     listStudents({
       q: q || undefined,
       sectionId: sectionId || undefined,
-      status: status || undefined,
+      status: statusFilter,
       sort,
       dir,
       page,

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { student, parent, parentStudent } from "@/lib/db/schema/people";
 import { class_, section } from "@/lib/db/schema/academic";
+import { studentStatusEnum } from "@/lib/db/schema/enums";
 import { permittedStudentIds } from "@/lib/student-scoping";
 import { requireAbility } from "./session";
 import type { Role } from "@/lib/permissions";
@@ -34,6 +35,7 @@ const parentEntry = z.object({
 
 export type StudentSortKey = "admissionNo" | "firstName" | "status";
 export type SortDir = "asc" | "desc";
+export type StudentStatus = (typeof studentStatusEnum.enumValues)[number];
 
 const STUDENT_SORT_COLUMNS = {
   admissionNo: student.admissionNo,
@@ -43,7 +45,7 @@ const STUDENT_SORT_COLUMNS = {
 
 export async function listStudents(filter?: {
   sectionId?: string;
-  status?: string;
+  status?: StudentStatus;
   q?: string;
   sort?: StudentSortKey;
   dir?: SortDir;
